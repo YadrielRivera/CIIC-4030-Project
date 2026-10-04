@@ -17,13 +17,17 @@ tokens = tuple(keywords.values()) + ('MEMORY', 'IDENTIFIER', 'SEMICOLON')
 
 t_MEMORY = r'@memory\b'
 t_SEMICOLON = r';'
-t_ignore = ' \t\r\n'
+t_ignore = ' \t\r'
 
 
 def t_IDENTIFIER(t):
   r'[A-Za-z_][A-Za-z0-9_]*'
   t.type = keywords.get(t.value, 'IDENTIFIER')
   return t
+
+def t_newline(t):
+    r'\n+'
+    t.lexer.lineno += len(t.value)
 
 
 lexer = lex.lex()
