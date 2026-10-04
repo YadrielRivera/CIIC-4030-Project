@@ -13,16 +13,16 @@ keywords = {
   'print': 'PRINT',
 }
 
-tokens = tuple(keywords.values()) + ('MEMORY', 'IDENT', 'SEMICOLON')
+tokens = tuple(keywords.values()) + ('MEMORY', 'IDENTIFIER', 'SEMICOLON')
 
 t_MEMORY = r'@memory\b'
 t_SEMICOLON = r';'
 t_ignore = ' \t\r\n'
 
 
-def t_IDENT(t):
+def t_IDENTIFIER(t):
   r'[A-Za-z_][A-Za-z0-9_]*'
-  t.type = keywords.get(t.value, 'IDENT')
+  t.type = keywords.get(t.value, 'IDENTIFIER')
   return t
 
 
