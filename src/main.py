@@ -13,10 +13,11 @@ keywords = {
   'print': 'PRINT',
 }
 
-tokens = tuple(keywords.values()) + ('MEMORY', 'IDENTIFIER', 'SEMICOLON')
+literals = [';', '(', ')', '{', '}'] # Special symbols
+
+tokens = tuple(keywords.values()) + ('MEMORY', 'IDENTIFIER')
 
 t_MEMORY = r'@memory\b'
-t_SEMICOLON = r';'
 t_ignore = ' \t\r'
 
 
