@@ -10,30 +10,23 @@ def OpenFile():
     return None
 
   fd = open(file_name, 'r')
-  # This code only tests that the file contents are being received
-  # print("Successfully accessed file for read.")
-  # print("Showing file contents...\n")
-
-  # for exp in fd:
-  #   print(exp)
-  # print("EOF")
 
   return fd
 
 
-def main() -> int:
+def main():
 
   if (len(sys.argv) < 1):
     print("Error: invalid argument count.")
-    return -1
+    return
   
   file = OpenFile()
 
   if (not file):
     print("File output is None")
-    return -1
+    return
 
-  return 0
+  return
   
 
 main()
