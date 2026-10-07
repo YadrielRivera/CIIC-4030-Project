@@ -15,7 +15,23 @@ keywords = {
 
 literals = [';', '(', ')', '{', '}'] # Special symbols
 
-tokens = tuple(keywords.values()) + ('MEMORY', 'IDENTIFIER')
+tokens = tuple(keywords.values()) + ('MEMORY', 'IDENTIFIER', 'PLUS', 'MINUS', 'MULTIPLY', 
+                                     'DIVIDE', 'MODULO', 'EQUALS', 'NOTEQUALS', 
+                                     'LESSTHAN', 'GREATERTHAN', 'LESSTHANEQUAL'
+                                     , 'GREATERTHANEQUAL')
+
+#Operators
+t_PLUS = r'\+'
+t_MINUS = r'-'
+t_MULTIPLY = r'\*'
+t_DIVIDE = r'/'
+t_MODULO = r'%'
+t_EQUALS = r'=='
+t_NOTEQUALS = r'!='
+t_LESSTHAN = r'<'
+t_GREATERTHAN = r'>'
+t_LESSTHANEQUAL = r'<='
+t_GREATERTHANEQUAL = r'>='
 
 t_MEMORY = r'@memory\b'
 t_ignore = ' \t\r'
