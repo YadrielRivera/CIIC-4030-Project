@@ -1,0 +1,11 @@
+// Numeric literal test file
+let a = 0
+let b = 1
+let c = 42
+let d = 999
+let e = 2147483647
+let f = 0.0
+let g = 3.14
+let h = 9.81
+let i = 3.434564
+let j = 100.001
