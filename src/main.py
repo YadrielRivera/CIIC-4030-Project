@@ -15,7 +15,8 @@ keywords = {
 
 literals = [';', '(', ')', '{', '}'] # Special symbols
 
-tokens = tuple(keywords.values()) + ('MEMORY', 'IDENTIFIER', 'PLUS', 'MINUS', 'MULTIPLY', 
+tokens = tuple(keywords.values()) + ('MEMORY', 'IDENTIFIER', 'INTEGER', 'FLOAT', 'ASSIGN',
+                                     'PLUS', 'MINUS', 'MULTIPLY', 
                                      'DIVIDE', 'MODULO', 'EQUALS', 'NOTEQUALS', 
                                      'LESSTHAN', 'GREATERTHAN', 'LESSTHANEQUAL'
                                      , 'GREATERTHANEQUAL')
@@ -27,6 +28,7 @@ t_MULTIPLY = r'\*'
 t_DIVIDE = r'/'
 t_MODULO = r'%'
 t_EQUALS = r'=='
+t_ASSIGN = r'=' 
 t_NOTEQUALS = r'!='
 t_LESSTHAN = r'<'
 t_GREATERTHAN = r'>'
@@ -36,6 +38,16 @@ t_GREATERTHANEQUAL = r'>='
 t_MEMORY = r'@memory\b'
 t_ignore = ' \t\r'
 
+
+def t_FLOAT(t):
+    r'\d+\.\d+'
+    t.value = float(t.value)
+    return t
+
+def t_INTEGER(t):
+    r'\d+'
+    t.value = int(t.value)
+    return t
 
 def t_IDENTIFIER(t):
   r'[A-Za-z_][A-Za-z0-9_]*'
@@ -77,6 +89,14 @@ def main():
   if (not file):
     print("File output is None")
     return
+
+  #numbertest.uedge Testing
+  # data = file.read()          
+  # file.close()                
+
+  # lexer.input(data)           
+  # for tok in lexer:           
+      # print(tok)              
 
   return
   
