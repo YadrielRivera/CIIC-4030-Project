@@ -2,6 +2,8 @@ import sys
 import ply.lex as lex
 import ply.yacc as yacc
 
+# Lexing code
+
 keywords = {
   'let': 'LET',
   'func': 'FUNC',
@@ -19,7 +21,7 @@ tokens = tuple(keywords.values()) + ('MEMORY', 'IDENTIFIER', 'INTEGER', 'FLOAT',
                                      'PLUS', 'MINUS', 'MULTIPLY', 
                                      'DIVIDE', 'MODULO', 'EQUALS', 'NOTEQUALS', 
                                      'LESSTHAN', 'GREATERTHAN', 'LESSTHANEQUAL'
-                                     , 'GREATERTHANEQUAL')
+                                     , 'GREATERTHANEQUAL', 'STRING')
 
 #Operators
 t_PLUS = r'\+'
@@ -61,6 +63,12 @@ def t_newline(t):
 def t_COMMENT(t):
     r'//.*'
     pass
+
+def t_STRING(t):
+    r'"[^"]*"'
+    # Strip the surrounding quotes to get the actual value
+    t.value = t.value[1:-1]
+    return t
 
 
 lexer = lex.lex()

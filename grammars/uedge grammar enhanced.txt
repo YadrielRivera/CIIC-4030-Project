@@ -1,0 +1,50 @@
+(* Program Structure *)
+<program>          ::= { <top_level_element> }
+<top_level_element>::= [ <decorator> ] <function_def>
+                     | <statement>
+
+<decorator>        ::= "@memory" "(" <INTEGER> <unit> ")"
+<unit>             ::= "kb" | "Mb" | "Gb" | "Tb" | "Pb" | "Eb" | "Zb" | "Yb"
+
+(* Statements & Blocks *)
+<block>            ::= "{" { <statement> } "}"
+
+<statement>        ::= <assign_stmt>
+                     | <update_stmt>
+                     | <for_loop>
+                     | <return_stmt>
+                     | <expr_stmt>
+
+<assign_stmt>      ::= "let" <ID> "=" <expression> ";"
+<update_stmt>      ::= <ID> "=" <expression> ";"
+<return_stmt>      ::= "return" [ <expression> ] ";"
+<expr_stmt>        ::= <expression> ";"
+
+<for_loop>         ::= "for" "(" <init_stmt> <expression> ";" <update_expr> ")" <block>
+<init_stmt>        ::= <assign_stmt> | <update_stmt> | ";"
+<update_expr>      ::= <ID> "=" <expression>
+
+(* Function Definitions & Calls *)
+<function_def>     ::= "func" <ID> "(" [ <param_list> ] ")" <block>
+<param_list>       ::= <ID> { "," <ID> }
+
+<function_call>    ::= <ID> "(" [ <arg_list> ] ")"
+<arg_list>         ::= <expression> { "," <expression> }
+
+(* Expressions & Operations *)
+<expression>       ::= <term> { <OP> <term> }
+<term>             ::= <num_literal>
+                     | <STRING>
+                     | <BOOL>
+                     | <function_call>
+                     | <ID>
+                     | "(" <expression> ")"
+
+(* Tokens & Literals *)
+<num_literal>      ::= <FLOAT> | <INTEGER>
+<BOOL>             ::= "true" | "false" | "1" | "0"
+<ID>               ::= r'[A-Za-z_][A-Za-z0-9_]*'
+<INTEGER>          ::= r'\d+'
+<FLOAT>            ::= r'\d+\.\d+'
+<STRING>           ::= r'"[^"]*"'
+<OP>               ::= "+" | "-" | "*" | "/" | "%" | "==" | "!=" | "<" | ">" | "<=" | ">="
