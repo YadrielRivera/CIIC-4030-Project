@@ -1,0 +1,30 @@
+<stmt_list> -> <assign_stmt> | <update_stmt> | <operation> | <for_loop> | <function_def> | <function_call>
+<assign_stmt> -> let <ID> = <expression>;
+<update_stmt> -> <ID> = <expression>;
+
+<ID> -> r'[A-Za-z_][A-Za-z0-9_]*'
+<expression> -> <STRING> | <BOOL> | <operation> | <function_call>
+
+<STRING> -> r'"[^"]*"'
+<BOOL> -> 1 | 0
+
+<operation> -> <num_literal> | <ID> | <operation> <OP> <operation>
+
+<num_literal> -> <INTEGER> | <FLOAT>
+<INTEGER> -> r'\d+'
+<FLOAT> ->  r'\d+\.\d+'
+
+<OP> -> r'\+' | r'-' | r'\*' | r'/' | r'%' | r'==' |  r'!=' | r'<' | r'>' | r'<=' |  r'>='
+
+<for_loop> -> for(<assign_stmt>; <operation>; <update_stmt>) {<stmt_list>} | for(<update_stmt>; <operation>; <update_stmt>) {<stmt_list>}
+
+<function_def> -> func <ID>(<param_list>)
+<param_list> -> [<param> { "," <param> }]
+
+<param> -> <ID> | <INTEGER> | <FLOAT> | <STRING> | <BOOL>
+
+<function_call> -> <ID>(<param_list>)
+<print> -> print(<STRING>) | print(<ID>) | print(<INTEGER>) | print(<FLOAT>)  | print(function_call)
+
+<memory> -> @memory(<INTEGER><unit>)
+<unit> -> 'kb' | 'Mb' | 'Gb' | 'Tb' | 'Pb' | 'Eb' | 'Zb' | 'Yb'
