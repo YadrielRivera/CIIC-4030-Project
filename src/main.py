@@ -15,7 +15,7 @@ keywords = {
   'print': 'PRINT',
 }
 
-literals = [';', '(', ')', '{', '}'] # Special symbols
+literals = [';', '(', ')', '{', '}', ','] # Special symbols
 
 tokens = tuple(keywords.values()) + ('MEMORY', 'IDENTIFIER', 'INTEGER', 'FLOAT', 'ASSIGN',
                                      'PLUS', 'MINUS', 'MULTIPLY', 
@@ -73,6 +73,97 @@ def t_STRING(t):
 
 lexer = lex.lex()
 
+# Parser START
+start = 'program'
+
+def p_program(p):
+   'program : top_level_elements'
+   p[0] = {
+      'type': 'program', 
+      'body': p[1]
+   }
+
+def p_top_level_elements_multiple(p):
+   'top_level_elements : top_level_elements top_level_element'
+   p[0] = p[1] + [p[2]]
+
+def p_top_level_elements_empty(p):
+   'top_level_elements : empty'
+   p[0] = []
+
+def p_top_level_element(p):
+   #TO DO: 'statement' grammar rule must be defined before the complete parser can be initialized. 
+   '''top_level_element : decorator function_def 
+                        | function_def 
+                        | statement'''
+   
+   if len(p) == 3:
+      p[0] = p[2]
+      p[0]['memory'] = p[1]
+   else:
+      p[0] = p[1]
+
+def p_decorator(p):
+   "decorator : MEMORY '(' INTEGER unit ')'"
+   p[0] = {
+      'type': 'memory_annotation',
+      'amount': p[3],
+      'unit': p[4],
+      'line': p.lineno(1)
+   }
+
+#TO DO: Catch MemoryAnnotationError in main() during parser integration to report invalid units without a traceback
+class MemoryAnnotationError(Exception):
+    pass
+
+
+def p_unit(p):
+   'unit : IDENTIFIER'
+   
+   valid_units = {
+      'kb', 'Mb', 'Gb', 'Tb', 'Pb', 'Eb', 'Zb', 'Yb',
+   }
+   if p[1] not in valid_units:
+      raise MemoryAnnotationError(
+         f"Error: invalid memory unit '{p[1]}' "
+         f"at line {p.lineno(1)}"
+      )
+   p[0] = p[1]
+
+def p_function_def(p):
+   # TO DO: 'block' grammar rule must be implemented before the complete parser can be initialized.
+   """function_def : FUNC IDENTIFIER '(' param_list_opt ')' block"""
+
+   p[0] = {
+        'type': 'function',
+        'name': p[2],
+        'params': p[4],
+        'body': p[6],
+        'memory': None,   #p_top_level_element() recognizes if a memory decorator is present and assigns it to this field
+        'line': p.lineno(1)
+    }
+
+def p_param_list_opt_present(p):
+    'param_list_opt : param_list'
+    p[0] = p[1]
+
+def p_param_list_opt_empty(p):
+    'param_list_opt : empty'
+    p[0] = []
+
+def p_param_list_single(p):
+    'param_list : IDENTIFIER'
+    p[0] = [p[1]]
+
+def p_param_list_multiple(p):
+   "param_list : param_list ',' IDENTIFIER"
+   p[0] = p[1] + [p[3]]
+
+def p_empty(p):
+   'empty :'
+   p[0] = None
+
+# Parser END
 
 def OpenFile():
   file_name = sys.argv[1]
