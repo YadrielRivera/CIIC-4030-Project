@@ -132,7 +132,7 @@ def p_unit(p):
 
 def p_function_def(p):
    # TO DO: 'block' grammar rule must be implemented before the complete parser can be initialized.
-   """function_def : FUNC IDENTIFIER '(' param_list_opt ')' block"""
+   """function_def : FUNC IDENTIFIER '(' param_list_opt ')' block_stmt"""
 
    p[0] = {
         'type': 'function',
@@ -162,7 +162,8 @@ def p_param_list_multiple(p):
 def p_empty(p):
    'empty :'
    p[0] = None
-   
+
+#Assig statement, Let x = expression   
 def p_assing_stmt(p):
     'assing_stmt : LET IDENTIFIER ASSIGN expression'
     
@@ -172,7 +173,8 @@ def p_assing_stmt(p):
         'value' : p[4],
         'line' : p.lineno(1)
     }
-
+    
+#Update statement, x = new expression
 def p_update_stmt(p):
     'update_stmt : IDENTIFIER ASSIGN expression'
     p[0] = {
@@ -181,6 +183,8 @@ def p_update_stmt(p):
       'value' : p[3],
       'line' : p.lineno(1)
     }
+    
+#Return statement, return expression
 def p_return_stmt(p):
     'return_stmt : RETURN expression'
     p[0] = {
@@ -188,30 +192,37 @@ def p_return_stmt(p):
       'value' : p[2],
       'line' : p.lineno(1)
     }
+    
+#Expression statement, expression;
 def p_expr_stmt(p):
     'expr_stmt : expression'
     p[0] = {
       'type': 'expression_statement',
       'expression' : p[1],
-      "line" : p.lineno(1)
+      "line" : p[1].get('line') if isinstance(p[1], dict) else None
     }
+    
+#Statement list, multiple statements
 def p_statement_list_multiple(p):
     'statement_list : statement_list statement'
     p[0] = p[1] + [p[2]]
     
-def p_statement_list_single(p):
-    'statement_list : statement'
-    p[0] = [p[1]]
+#statement list, empty statement   
+def p_statement_list_empty(p):
+    'statement_list : empty'
+    p[0] = []
     
+#Statement, can be assig, update, return, expression, print or block statement
 def p_statement(p):
-    '''statement : assing_stmt SEMICOLON |
-                update_stmt SEMICOLON |
-                return_stmt SEMICOLON |
-                expr_stmt SEMICOLON |
-                expression_print SEMICOLON |
-                block_stmt'''
+    '''statement : assing_stmt ';' 
+                | update_stmt ';' 
+                | return_stmt ';' 
+                | expr_stmt ';' 
+                | if_stmt 
+                | block_stmt'''
     p[0] = p[1]
 
+#Print statement, print(expression);
 def p_expression_print(p):
     'expression : PRINT "(" expression ")"'
     p[0] = {
@@ -220,14 +231,31 @@ def p_expression_print(p):
       'line' : p.lineno(1)
     }   
     
-def p_bock_stmt(p):
-    'block_stmt : "(" "{" statement_list "}" ")"'
+#Block statement, { statement_list }   
+def p_block_stmt(p):
+    'block_stmt :  "{" statement_list "}" '
     p[0] = {
       'type' : 'block',
-      'statements' : p[3],
+      'statements' : p[2],
+      'line' : p.lineno(1)
+    }
+
+#If statement, if (expression) block else_opt
+def p_if_stmt(p):
+    'if_stmt : IF "(" expression ")" block_stmt else_opt'
+    p[0] = {
+      'type' : 'if',
+      'condition' : p[3],
+      'then' : p[5],
+      'else' : p[6],
       'line' : p.lineno(1)
     }
     
+# Optional else statement, else block or empty   
+def p_else_opt(p):
+    '''else_opt : ELSE block_stmt
+                | empty'''
+    p[0] = p[2] if len(p) == 3 else None
 
 # Parser END
 
