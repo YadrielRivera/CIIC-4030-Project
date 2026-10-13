@@ -162,6 +162,72 @@ def p_param_list_multiple(p):
 def p_empty(p):
    'empty :'
    p[0] = None
+   
+def p_assing_stmt(p):
+    'assing_stmt : LET IDENTIFIER ASSIGN expression'
+    
+    p[0] = {
+        'type' : 'assignment',
+        'target' : p[2],
+        'value' : p[4],
+        'line' : p.lineno(1)
+    }
+
+def p_update_stmt(p):
+    'update_stmt : IDENTIFIER ASSIGN expression'
+    p[0] = {
+      'type': 'update',
+      'target' : p[1],
+      'value' : p[3],
+      'line' : p.lineno(1)
+    }
+def p_return_stmt(p):
+    'return_stmt : RETURN expression'
+    p[0] = {
+      'type' : 'return',
+      'value' : p[2],
+      'line' : p.lineno(1)
+    }
+def p_expr_stmt(p):
+    'expr_stmt : expression'
+    p[0] = {
+      'type': 'expression_statement',
+      'expression' : p[1],
+      "line" : p.lineno(1)
+    }
+def p_statement_list_multiple(p):
+    'statement_list : statement_list statement'
+    p[0] = p[1] + [p[2]]
+    
+def p_statement_list_single(p):
+    'statement_list : statement'
+    p[0] = [p[1]]
+    
+def p_statement(p):
+    '''statement : assing_stmt SEMICOLON |
+                update_stmt SEMICOLON |
+                return_stmt SEMICOLON |
+                expr_stmt SEMICOLON |
+                expression_print SEMICOLON |
+                block_stmt'''
+    p[0] = p[1]
+
+def p_expression_print(p):
+    'expression : PRINT "(" expression ")"'
+    p[0] = {
+      'type' : 'print',
+      'value' : p[3],
+      'line' : p.lineno(1)
+    }   
+    
+def p_bock_stmt(p):
+    'block_stmt : "(" "{" statement_list "}" ")"'
+    p[0] = {
+      'type' : 'block',
+      'statements' : p[3],
+      'line' : p.lineno(1)
+    }
+    
 
 # Parser END
 
