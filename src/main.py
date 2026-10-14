@@ -13,6 +13,8 @@ keywords = {
   'for': 'FOR',
   'return': 'RETURN',
   'print': 'PRINT',
+  'true': 'TRUE',
+  'false': 'FALSE',
 }
 
 literals = [';', '(', ')', '{', '}', ','] # Special symbols
@@ -75,6 +77,13 @@ lexer = lex.lex()
 
 # Parser START
 start = 'program'
+
+precedence = (
+  ('left', 'EQUALS', 'NOTEQUALS', 'LESSTHAN', 'GREATERTHAN',
+   'LESSTHANEQUAL', 'GREATERTHANEQUAL'),
+  ('left', 'PLUS', 'MINUS'),
+  ('left', 'MULTIPLY', 'DIVIDE', 'MODULO'),
+)
 
 def p_program(p):
    'program : top_level_elements'
@@ -183,6 +192,27 @@ def p_update_stmt(p):
       'value' : p[3],
       'line' : p.lineno(1)
     }
+
+def p_for_loop(p):
+    'for_loop : FOR "(" init_stmt expression ";" update_expr ")" block_stmt'
+    p[0] = {
+      'type': 'for',
+      'init': p[3],
+      'condition': p[4],
+      'update': p[6],
+      'body': p[8],
+      'line': p.lineno(1)
+    }
+
+def p_init_stmt(p):
+    '''init_stmt : assing_stmt ';'
+                 | update_stmt ';'
+                 | ';' '''
+    p[0] = None if len(p) == 2 else p[1]
+
+def p_update_expr(p):
+    'update_expr : update_stmt'
+    p[0] = p[1]
     
 #Return statement, return expression
 def p_return_stmt(p):
@@ -219,8 +249,19 @@ def p_statement(p):
                 | return_stmt ';' 
                 | expr_stmt ';' 
                 | if_stmt 
+                | for_loop
+                | while_stmt
                 | block_stmt'''
     p[0] = p[1]
+
+def p_while_stmt(p):
+  'while_stmt : WHILE "(" expression ")" block_stmt'
+  p[0] = {
+    'type': 'while',
+    'condition': p[3],
+    'body': p[5],
+    'line': p.lineno(1)
+  }
 
 #Print statement, print(expression);
 def p_expression_print(p):
@@ -259,39 +300,50 @@ def p_else_opt(p):
 
 # Parser END
 
+def p_error(p):
+  if p:
+    print(f"Syntax error at line {p.lineno}: unexpected token {p.value!r}")
+  else:
+    print("Syntax error at end of input")
+
+
+parser = yacc.yacc(write_tables=False, debug=False)
+
+
+def parse(source):
+  lexer.lineno = 1
+  return parser.parse(source, lexer=lexer)
+
+
 def OpenFile():
-  file_name = sys.argv[1]
+   file_name = sys.argv[1]
 
-  if (not ".uedge" in file_name):
-    print("Error: Invalid file type")
-    return None
+   if not file_name.endswith(".uedge"):
+      print("Error: Invalid file type")
+      return None
 
-  fd = open(file_name, 'r')
+   fd = open(file_name, 'r')
 
-  return fd
+   return fd
 
 
 def main():
 
-  if (len(sys.argv) < 1):
-    print("Error: invalid argument count.")
-    return
+  if len(sys.argv) < 2:
+      print("Error: invalid argument count.")
+      return
   
   file = OpenFile()
 
   if (not file):
-    print("File output is None")
-    return
+      print("File output is None")
+      return
 
-  #numbertest.uedge Testing
-  # data = file.read()          
-  # file.close()                
-
-  # lexer.input(data)           
-  # for tok in lexer:           
-      # print(tok)              
+  with file:
+      parse(file.read())
 
   return
   
 
-main()
+if __name__ == '__main__':
+   main()
