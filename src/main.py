@@ -216,12 +216,20 @@ def p_update_expr(p):
     
 #Return statement, return expression
 def p_return_stmt(p):
-    'return_stmt : RETURN expression'
-    p[0] = {
-      'type' : 'return',
-      'value' : p[2],
-      'line' : p.lineno(1)
-    }
+    '''return_stmt : RETURN expression
+                   | RETURN'''
+    if len(p) == 3:
+        p[0] = {
+            'type': 'return',
+            'value': p[2],
+            'line': p.lineno(1)
+        }
+    else:
+        p[0] = {
+            'type': 'return',
+            'value': None,
+            'line': p.lineno(1)
+        }
     
 #Expression statement, expression;
 def p_expr_stmt(p):
@@ -270,7 +278,124 @@ def p_expression_print(p):
       'type' : 'print',
       'value' : p[3],
       'line' : p.lineno(1)
-    }   
+    }
+
+# Binary Operations, which precedence is handled by the precedence tuple above.
+def p_expression_binary(p):
+    '''expression : expression PLUS expression
+                  | expression MINUS expression
+                  | expression MULTIPLY expression
+                  | expression DIVIDE expression
+                  | expression MODULO expression
+                  | expression EQUALS expression
+                  | expression NOTEQUALS expression
+                  | expression LESSTHAN expression
+                  | expression GREATERTHAN expression
+                  | expression LESSTHANEQUAL expression
+                  | expression GREATERTHANEQUAL expression'''
+    p[0] = {
+        'type': 'binary',
+        'op': p[2],
+        'left': p[1],
+        'right': p[3],
+        'line': p[1].get('line') if isinstance(p[1], dict) else p.lineno(2)
+    }
+
+# An expression can be a single term.
+def p_expression_term(p):
+    'expression : term'
+    p[0] = p[1] 
+
+# Terms are literals, identifiers, function calls, or parenthesized expressions.
+def p_term_num_literal(p):
+    'term : num_literal'
+    p[0] = p[1]
+
+def p_term_string(p):
+    'term : STRING'
+    p[0] = {
+        'type': 'string',
+        'value': p[1],
+        'line': p.lineno(1)
+    }
+
+def p_term_bool_true(p):
+    'term : TRUE'
+    p[0] = {
+        'type': 'boolean',
+        'value': True,
+        'line': p.lineno(1)
+    }
+
+def p_term_bool_false(p):
+    'term : FALSE'
+    p[0] = {
+        'type': 'boolean',
+        'value': False,
+        'line': p.lineno(1)
+    }
+
+def p_term_identifier(p):
+    'term : IDENTIFIER'
+    p[0] = {
+        'type': 'identifier',
+        'name': p[1],
+        'line': p.lineno(1)
+    }
+
+def p_term_function_call(p):
+    'term : function_call'
+    p[0] = p[1]
+
+def p_term_paren(p):
+    'term : "(" expression ")"'
+    p[0] = p[2]   # keep the inner expression; parentheses only group
+
+
+# Numeric literals.
+def p_num_literal_integer(p):
+    'num_literal : INTEGER'
+    p[0] = {
+        'type': 'number',
+        'value': p[1],
+        'line': p.lineno(1)
+    }
+
+def p_num_literal_float(p):
+    'num_literal : FLOAT'
+    p[0] = {
+        'type': 'number',
+        'value': p[1],
+        'line': p.lineno(1)
+    }
+
+# Function calls: name(args...)
+def p_function_call(p):
+    'function_call : IDENTIFIER "(" arg_list_opt ")"'
+    p[0] = {
+        'type': 'call',
+        'callee': p[1],
+        'args': p[3],
+        'line': p.lineno(1)
+    }
+
+# Optional argument list.
+def p_arg_list_opt_present(p):
+    'arg_list_opt : arg_list'
+    p[0] = p[1]
+
+def p_arg_list_opt_empty(p):
+    'arg_list_opt : empty'
+    p[0] = []
+
+# One or more arguments separated by commas.
+def p_arg_list_single(p):
+    'arg_list : expression'
+    p[0] = [p[1]]
+
+def p_arg_list_multiple(p):
+    'arg_list : arg_list "," expression'
+    p[0] = p[1] + [p[3]]
     
 #Block statement, { statement_list }   
 def p_block_stmt(p):
