@@ -216,7 +216,8 @@ def p_update_expr(p):
     
 #Return statement, return expression
 def p_return_stmt(p):
-    'return_stmt : RETURN expression'
+    '''return_stmt : RETURN expression
+                   | RETURN'''
     if len(p) == 3:
         p[0] = {
             'type': 'return',
