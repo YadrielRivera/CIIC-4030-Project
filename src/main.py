@@ -72,6 +72,9 @@ def t_STRING(t):
     t.value = t.value[1:-1]
     return t
 
+def t_error(t):
+    print(f"Error: illegal character '{t.value[0]}' at line {t.lineno}") #Retrieves first unrecognized character from line number maintained by the lexer
+    sys.exit(1)
 
 lexer = lex.lex()
 
@@ -101,7 +104,6 @@ def p_top_level_elements_empty(p):
    p[0] = []
 
 def p_top_level_element(p):
-   #TO DO: 'statement' grammar rule must be defined before the complete parser can be initialized. 
    '''top_level_element : decorator function_def 
                         | function_def 
                         | statement'''
@@ -121,10 +123,6 @@ def p_decorator(p):
       'line': p.lineno(1)
    }
 
-#TO DO: Catch MemoryAnnotationError in main() during parser integration to report invalid units without a traceback
-class MemoryAnnotationError(Exception):
-    pass
-
 
 def p_unit(p):
    'unit : IDENTIFIER'
@@ -133,14 +131,12 @@ def p_unit(p):
       'kb', 'Mb', 'Gb', 'Tb', 'Pb', 'Eb', 'Zb', 'Yb',
    }
    if p[1] not in valid_units:
-      raise MemoryAnnotationError(
-         f"Error: invalid memory unit '{p[1]}' "
-         f"at line {p.lineno(1)}"
-      )
+      print(f"Error: invalid memory unit '{p[1]}' at line {p.lineno(1)}")
+      sys.exit(1)
+
    p[0] = p[1]
 
 def p_function_def(p):
-   # TO DO: 'block' grammar rule must be implemented before the complete parser can be initialized.
    """function_def : FUNC IDENTIFIER '(' param_list_opt ')' block_stmt"""
 
    p[0] = {
@@ -429,7 +425,9 @@ def p_error(p):
   if p:
     print(f"Syntax error at line {p.lineno}: unexpected token {p.value!r}")
   else:
-    print("Syntax error at end of input")
+    print(f"Syntax error at end of input at line {lexer.lineno}")
+
+  sys.exit(1)
 
 
 parser = yacc.yacc(write_tables=False, debug=False)
@@ -467,7 +465,7 @@ def main():
   with file:
       parse(file.read())
 
-  return
+  print("Parse successful")
   
 
 if __name__ == '__main__':
