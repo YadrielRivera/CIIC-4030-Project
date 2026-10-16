@@ -73,8 +73,8 @@ def t_STRING(t):
     return t
 
 def t_error(t):
-    print(f"Error: illegal character '{t.value[0]}' at line {t.lineno}") #Retrieves first unrecognized character from line number maintained by the lexer
-    sys.exit(1)
+    print(f"Error: unexpected token ‘{t.value[0]}’ at line {t.lineno}") #Retrieves first unrecognized character from line number maintained by the lexer
+    sys.exit(0)
 
 lexer = lex.lex()
 
@@ -132,7 +132,7 @@ def p_unit(p):
    }
    if p[1] not in valid_units:
       print(f"Error: invalid memory unit '{p[1]}' at line {p.lineno(1)}")
-      sys.exit(1)
+      sys.exit(0)
 
    p[0] = p[1]
 
@@ -427,10 +427,10 @@ def p_error(p):
   else:
     print(f"Syntax error at end of input at line {lexer.lineno}")
 
-  sys.exit(1)
+  sys.exit(0)
 
 
-parser = yacc.yacc(write_tables=False, debug=False)
+parser = yacc.yacc()
 
 
 def parse(source):
@@ -465,7 +465,7 @@ def main():
   with file:
       parse(file.read())
 
-  print("Parse successful")
+  print("Parsed successfully")
   
 
 if __name__ == '__main__':
