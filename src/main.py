@@ -464,6 +464,44 @@ def p_error(p):
 
 parser = yacc.yacc()
 
+# INTERPRETER CODE
+class InterpreterError(Exception):
+    pass
+class Scope():
+    # A parent will be None only if that parent is the global scope or the child is Global itself
+    def __init__(self, parent=None):
+        self.parent_scope = parent
+        self.scope = {}
+
+    def define(self, name, value):
+        if name in self.scope:
+            raise InterpreterError("Variable already defined.")
+        self.scope[name] = value
+
+
+    def lookup(self, name):
+        if name in self.scope:
+            return self.scope[name]
+        
+        if not self.parent_scope == None:
+            return Scope.lookup(self.parent_scope, name)
+
+        if self.parent_scope == None:
+            raise InterpreterError("Undefined variable.")
+    
+
+    def assign(self, name, value):
+        if name in self.scope:
+            self.scope[name] = value
+
+        if not self.parent_scope == None:
+            Scope.assign(self.parent_scope, name, value)
+        
+        if self.parent_scope == None:
+            raise InterpreterError("Cannot assign to undefined variable.")
+
+
+# RUN THE STUFF
 
 def parse(source):
   lexer.lineno = 1
