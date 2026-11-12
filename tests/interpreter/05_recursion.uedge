@@ -1,0 +1,65 @@
+// UPRM-Edge Subproject 2 sample: recursion
+// Factorial, Fibonacci, GCD, power (including a negative base), a sum, and a recursive countdown
+// whose return value is ignored.
+//
+// expected output:
+//   720
+//   55
+//   6
+//   1
+//   1024
+//   -8
+//   16
+//   5050
+//   3
+//   2
+//   1
+//   0
+// expected result: OK (exit code 0).
+
+func factorial(n) {
+    if (n <= 1) {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+func fib(n) {
+    if (n < 2) {
+        return n;
+    }
+    return fib(n - 1) + fib(n - 2);
+}
+func gcd(a, b) {
+    if (b == 0) {
+        return a;
+    }
+    return gcd(b, a % b);
+}
+func power(base, exp) {
+    if (exp == 0) {
+        return 1;
+    }
+    return base * power(base, exp - 1);
+}
+func sumTo(n) {
+    if (n == 0) {
+        return 0;
+    }
+    return n + sumTo(n - 1);
+}
+func countdown(n) {
+    if (n < 0) {
+        return 0;
+    }
+    print(n);
+    return countdown(n - 1);
+}
+print(factorial(6));
+print(fib(10));
+print(gcd(48, 18));
+print(gcd(17, 5));
+print(power(2, 10));
+print(power(-2, 3));
+print(power(-2, 4));
+print(sumTo(100));
+countdown(3);

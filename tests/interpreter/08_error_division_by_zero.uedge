@@ -1,0 +1,15 @@
+// UPRM-Edge Subproject 2 sample: runtime error: division by zero
+// The first two prints succeed, then the division fails. Output before the error must still appear.
+//
+// expected output:
+//   before
+//   5
+// expected result: ERROR (division by zero) - message on stderr, exit code 1.
+
+func safeRatio(a, b) {
+    return a / b;
+}
+print("before");
+print(safeRatio(10, 2));
+print(safeRatio(5, 0));
+print("after");
