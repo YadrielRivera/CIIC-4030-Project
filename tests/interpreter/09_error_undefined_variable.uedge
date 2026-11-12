@@ -1,0 +1,10 @@
+// UPRM-Edge Subproject 2 sample: runtime error: undefined variable
+// "unknown" was never declared.
+//
+// expected output:
+//   (nothing)
+// expected result: ERROR (undefined variable) - message on stderr, exit code 1.
+
+let known = 5;
+print(unknown + known);
+print("unreachable");

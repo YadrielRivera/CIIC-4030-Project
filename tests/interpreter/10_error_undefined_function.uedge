@@ -1,0 +1,12 @@
+// UPRM-Edge Subproject 2 sample: runtime error: undefined function
+// triple is never defined.
+//
+// expected output:
+//   (nothing)
+// expected result: ERROR (undefined function) - message on stderr, exit code 1.
+
+func twice(x) {
+    return x * 2;
+}
+print(triple(3));
+print("unreachable");

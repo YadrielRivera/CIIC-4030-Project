@@ -1,0 +1,61 @@
+// UPRM-Edge Subproject 2 sample: function calls
+// Nested calls, calls as arguments, calls in conditions, functions with no parameters,
+// a function with no return value, and a call whose result is discarded.
+//
+// expected output:
+//   hello
+//   42
+//   5
+//   10
+//   25
+//   27
+//   25
+//   25
+//   40
+//   21
+//   square ok
+//   5
+//   80
+// expected result: OK (exit code 0).
+
+func add(a, b) {
+    return a + b;
+}
+func mul(a, b) {
+    return a * b;
+}
+func square(x) {
+    return mul(x, x);
+}
+func cube(x) {
+    return mul(x, square(x));
+}
+func greet() {
+    print("hello");
+}
+func answer() {
+    return 42;
+}
+func sumOfSquares(a, b) {
+    return add(square(a), square(b));
+}
+func hypotSquared(a, b) {
+    return sumOfSquares(a, b);
+}
+greet();
+print(answer());
+print(add(2, 3));
+print(add(add(1, 2), add(3, 4)));
+print(square(5));
+print(cube(3));
+print(sumOfSquares(3, 4));
+print(hypotSquared(-3, 4));
+print(add(answer(), -2));
+print(mul(add(1, 2), add(3, 4)));
+if (square(4) == 16) {
+    print("square ok");
+}
+let r = add(mul(2, 3), -1);
+print(r);
+add(1, 2);
+print(answer() * 2 - 4);

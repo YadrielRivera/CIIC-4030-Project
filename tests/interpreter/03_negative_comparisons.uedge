@@ -1,0 +1,55 @@
+// UPRM-Edge Subproject 2 sample: comparisons and conditions with negative numbers
+// Comparison operators with negative operands, functions that return booleans and -1/0/1,
+// and a while loop that climbs from a negative start.
+//
+// expected output:
+//   true
+//   false
+//   true
+//   true
+//   true
+//   true
+//   -1
+//   0
+//   1
+//   true
+//   false
+//   negative
+//   -6
+//   -2
+//   2
+// expected result: OK (exit code 0).
+
+func sign(n) {
+    if (n < 0) {
+        return -1;
+    }
+    if (n > 0) {
+        return 1;
+    }
+    return 0;
+}
+func isNegative(n) {
+    return n < 0;
+}
+print(-5 < -2);
+print(-5 > -2);
+print(-1 == -1);
+print(0 - 3 == -3);
+print(-4 <= -4);
+print(2 >= -2);
+print(sign(-9));
+print(sign(0));
+print(sign(14));
+print(isNegative(-1));
+print(isNegative(1));
+if (isNegative(-8)) {
+    print("negative");
+} else {
+    print("not negative");
+}
+let t = -10;
+while (t < 0) {
+    t = t + 4;
+    print(t);
+}

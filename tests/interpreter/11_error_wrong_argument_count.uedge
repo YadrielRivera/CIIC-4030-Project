@@ -1,0 +1,12 @@
+// UPRM-Edge Subproject 2 sample: runtime error: wrong number of arguments
+// add expects 2 arguments and gets 1.
+//
+// expected output:
+//   (nothing)
+// expected result: ERROR (wrong number of arguments) - message on stderr, exit code 1.
+
+func add(a, b) {
+    return a + b;
+}
+print(add(1));
+print("unreachable");
