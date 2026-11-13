@@ -471,17 +471,17 @@ class Scope():
     # A parent will be None only if that parent is the global scope or the child is Global itself
     def __init__(self, parent=None):
         self.parent_scope = parent
-        self.scope = {}
+        self.scope_vars = {}
 
     def define(self, name, value):
         if name in self.scope:
             raise InterpreterError("Variable already defined.")
-        self.scope[name] = value
+        self.scope_vars[name] = value
 
 
     def lookup(self, name):
-        if name in self.scope:
-            return self.scope[name]
+        if name in self.scope_vars:
+            return self.scope_vars[name]
         
         if not self.parent_scope == None:
             return Scope.lookup(self.parent_scope, name)
@@ -491,7 +491,7 @@ class Scope():
     
 
     def assign(self, name, value):
-        if name in self.scope:
+        if name in self.scope_vars:
             self.scope[name] = value
 
         if not self.parent_scope == None:
@@ -500,8 +500,25 @@ class Scope():
         if self.parent_scope == None:
             raise InterpreterError("Cannot assign to undefined variable.")
 
+class ScopeEnvironment:
+    # By default the environment is the global scope
+    def __init__(self, curr_scope=None):
+        self.curr_scope = curr_scope
+
+    def push_scope(self):
+        child_scope = Scope(self.curr_scope)
+        self.curr_scope = child_scope
+        
+        return child_scope
+
+    def pop_scope(self):
+        self.curr_scope = self.curr_scope.parent_scope
+
+
 
 # RUN THE STUFF
+global_scope = Scope(parent=None)
+environ = ScopeEnvironment(global_scope)
 
 def parse(source):
   lexer.lineno = 1
