@@ -514,7 +514,22 @@ class ScopeEnvironment:
     def pop_scope(self):
         self.curr_scope = self.curr_scope.parent_scope
 
+unit_multiplier = {
+    "kb": 1024,
+    "mb": 1024 ** 2,
+    "gb": 1024 ** 3,
+    "tb": 1024 ** 4,
+    "pb": 1024 ** 5,
+    "eb": 1024 ** 6,
+    "zb": 1024 ** 7,
+    "yb": 1024 ** 8
+}
 
+def process_mem_anots(node):
+    unit = node["unit"].lower()
+    amount = node["amount"]
+
+    return amount*unit_multiplier[unit]
 
 # RUN THE STUFF
 global_scope = Scope(parent=None)
