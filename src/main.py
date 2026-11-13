@@ -464,6 +464,76 @@ def p_error(p):
 
 parser = yacc.yacc()
 
+# INTERPRETER CODE
+class InterpreterError(Exception):
+    pass
+class Scope():
+    # A parent will be None only if that parent is the global scope or the child is Global itself
+    def __init__(self, parent=None):
+        self.parent_scope = parent
+        self.scope_vars = {}
+
+    def define(self, name, value):
+        if name in self.scope:
+            raise InterpreterError("Variable already defined.")
+        self.scope_vars[name] = value
+
+
+    def lookup(self, name):
+        if name in self.scope_vars:
+            return self.scope_vars[name]
+        
+        if not self.parent_scope == None:
+            return Scope.lookup(self.parent_scope, name)
+
+        if self.parent_scope == None:
+            raise InterpreterError("Undefined variable.")
+    
+
+    def assign(self, name, value):
+        if name in self.scope_vars:
+            self.scope[name] = value
+
+        if not self.parent_scope == None:
+            Scope.assign(self.parent_scope, name, value)
+        
+        if self.parent_scope == None:
+            raise InterpreterError("Cannot assign to undefined variable.")
+
+class ScopeEnvironment:
+    # By default the environment is the global scope
+    def __init__(self, curr_scope=None):
+        self.curr_scope = curr_scope
+
+    def push_scope(self):
+        child_scope = Scope(self.curr_scope)
+        self.curr_scope = child_scope
+        
+        return child_scope
+
+    def pop_scope(self):
+        self.curr_scope = self.curr_scope.parent_scope
+
+unit_multiplier = {
+    "kb": 1024,
+    "mb": 1024 ** 2,
+    "gb": 1024 ** 3,
+    "tb": 1024 ** 4,
+    "pb": 1024 ** 5,
+    "eb": 1024 ** 6,
+    "zb": 1024 ** 7,
+    "yb": 1024 ** 8
+}
+
+def process_mem_anots(node):
+    unit = node["unit"].lower()
+    amount = node["amount"]
+
+    return amount*unit_multiplier[unit]
+
+# RUN THE STUFF
+global_scope = Scope(parent=None)
+environ = ScopeEnvironment(global_scope)
 
 def parse(source):
   lexer.lineno = 1

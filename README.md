@@ -68,10 +68,12 @@ memory usage.
 ├── src/
 │   └── main.py
 └── tests/
-    ├── counter_examples/
-    └── working_examples/
-        ├── core/
-        └── memory_track/
+    ├───interpreter/
+    └───Parsing/
+        ├───Core/
+        └───working_examples/
+            ├───core/
+            └───memory_track/
 ```
 
 - `grammars/` contains the language grammar drafts.
@@ -97,3 +99,10 @@ func readSensorBuffer() {
 The parser recognizes `kb`, `Mb`, `Gb`, `Tb`, `Pb`, `Eb`, `Zb`, and `Yb`.
 Choosing and applying a cost model, measuring allocations, and reporting
 budget violations are not implemented yet.
+
+
+## Interpreter
+
+### Important Design Desicions
+
+- The language will use Lexical Scoping `Local Scope -> Enclosing blocks -> Global Scope`  
