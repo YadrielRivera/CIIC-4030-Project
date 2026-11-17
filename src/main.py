@@ -603,6 +603,13 @@ def Evaluate_expression(node, env: ScopeEnvironment):
                 return left <= right
             elif op == '>=':
                 return left >= right
+        elif op in ('&&', '||'):
+            if not isinstance(left, bool) or not isinstance(right, bool):
+                raise InterpreterError(f"Operator '{op}' requires boolean operands, got {type(left).__name__} and {type(right).__name__}.")
+            if op == '&&':
+                return left and right
+            elif op == '||':
+                return left or right
         else:
             raise InterpreterError(f"Unknown binary operator '{op}'.")
     else:
