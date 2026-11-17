@@ -1,3 +1,4 @@
+from platform import node
 import re
 import sys
 import ply.lex as lex
@@ -530,7 +531,77 @@ def process_mem_anots(node):
     amount = node["amount"]
 
     return amount*unit_multiplier[unit]
+# Expression evaluation functions
 
+def is_number(val):
+    return isinstance(val, (int, float)) and not isinstance(val, bool)
+
+def is_equal(val1, val2):
+    if type(val1) != type(val2):
+        return False
+    return val1 == val2
+
+def NumberCheck(op, left, right):
+    if not (is_number(left) and is_number(right)):
+        raise InterpreterError(f"Operator '{op}' requires numeric operands, got {type(left).__name__} and {type(right).__name__}.")
+
+def Evaluate_expression(node, env: ScopeEnvironment):
+    node_type = node['type']
+   
+    if node_type == 'number':
+      return node['value']
+    elif node_type == 'boolean':
+      return node['value']
+    elif node_type == 'string':
+      return node['value']
+    elif node_type == 'identifier':
+      return env.curr_scope.lookup(node['name'])
+    elif node_type == 'binary':
+        left = Evaluate_expression(node['left'], env)
+        right = Evaluate_expression(node['right'], env)
+        op = node['op']
+        
+        if op == '+':
+            if is_number(left) and is_number(right):
+                return left + right
+            if isinstance(left, str) and isinstance(right, str):
+                return left + right
+            raise InterpreterError(f"Operator '+' requires both operands to be numbers or strings, got {type(left).__name__} and {type(right).__name__}.")
+        elif op == '-':
+            NumberCheck(op, left, right)
+            return left - right
+        elif op == '*':
+            NumberCheck(op, left, right)
+            return left * right
+        elif op == '/':
+            NumberCheck(op, left, right)
+            if right == 0:
+                raise InterpreterError("Division by zero.")
+            return left / right
+        elif op == '%':
+            NumberCheck(op, left, right)
+            if right == 0:
+                raise InterpreterError("Modulo by zero.")
+            return left % right
+        elif op == '==':
+            return is_equal(left, right)
+        elif op == '!=':
+            return not is_equal(left, right)
+        elif op in ('<', '>', '<=', '>='):
+            NumberCheck(op, left, right)
+            if op == '<':
+                return left < right
+            elif op == '>':
+                return left > right
+            elif op == '<=':
+                return left <= right
+            elif op == '>=':
+                return left >= right
+        else:
+            raise InterpreterError(f"Unknown binary operator '{op}'.")
+    else:
+        raise InterpreterError(f"Unknown expression type '{node_type}'.")
+    
 # RUN THE STUFF
 global_scope = Scope(parent=None)
 environ = ScopeEnvironment(global_scope)
