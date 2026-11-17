@@ -531,20 +531,26 @@ def process_mem_anots(node):
     amount = node["amount"]
 
     return amount*unit_multiplier[unit]
-# Expression evaluation functions
 
+# Expression evaluation functions
+# verify if a value is a number (int or float) and not a boolean
 def is_number(val):
     return isinstance(val, (int, float)) and not isinstance(val, bool)
 
+# Function to chech if two values are equal
 def is_equal(val1, val2):
+    if is_number(val1) and is_number(val2):
+        return val1 == val2
     if type(val1) != type(val2):
         return False
     return val1 == val2
 
+# Function to check if both operands are numbers for binary operations
 def NumberCheck(op, left, right):
     if not (is_number(left) and is_number(right)):
         raise InterpreterError(f"Operator '{op}' requires numeric operands, got {type(left).__name__} and {type(right).__name__}.")
 
+# Evaluate an expression node in the AST
 def Evaluate_expression(node, env: ScopeEnvironment):
     node_type = node['type']
    
