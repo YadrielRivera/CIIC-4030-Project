@@ -92,6 +92,7 @@ precedence = (
    'LESSTHANEQUAL', 'GREATERTHANEQUAL'),
   ('left', 'PLUS', 'MINUS'),
   ('left', 'MULTIPLY', 'DIVIDE', 'MODULO'),
+  ('right', 'UMINUS'),
 )
 
 def p_program(p):
@@ -308,6 +309,11 @@ def p_expression_term(p):
     'expression : term'
     p[0] = p[1] 
 
+# Negative Expresions
+def p_expression_unary_minus(p):
+    'expression : MINUS expression %prec UMINUS'
+    p[0] = {'type': 'unary', 'op': '-', 'operand': p[2], 'line': p.lineno(1)}
+
 # Terms are literals, identifiers, function calls, or parenthesized expressions.
 def p_term_num_literal(p):
     'term : num_literal'
@@ -475,7 +481,7 @@ class Scope():
         self.scope_vars = {}
 
     def define(self, name, value):
-        if name in self.scope:
+        if name in self.scope_vars:
             raise InterpreterError("Variable already defined.")
         self.scope_vars[name] = value
 
@@ -484,22 +490,20 @@ class Scope():
         if name in self.scope_vars:
             return self.scope_vars[name]
         
-        if not self.parent_scope == None:
-            return Scope.lookup(self.parent_scope, name)
-
-        if self.parent_scope == None:
-            raise InterpreterError("Undefined variable.")
+        if self.parent_scope is not None:
+            return self.parent_scope.lookup(name)
+        raise InterpreterError("Undefined variable.")
     
 
     def assign(self, name, value):
         if name in self.scope_vars:
-            self.scope[name] = value
+            self.scope_vars[name] = value
+            return
 
-        if not self.parent_scope == None:
-            Scope.assign(self.parent_scope, name, value)
-        
-        if self.parent_scope == None:
-            raise InterpreterError("Cannot assign to undefined variable.")
+        if self.parent_scope is not None:
+            self.parent_scope.assign(name, value)
+            return
+        raise InterpreterError("Cannot assign to undefined variable.")  
 
 class ScopeEnvironment:
     # By default the environment is the global scope
@@ -515,15 +519,13 @@ class ScopeEnvironment:
     def pop_scope(self):
         self.curr_scope = self.curr_scope.parent_scope
 
+# RUN THE STUFF
+global_scope = Scope(parent=None)
+environ = ScopeEnvironment(global_scope)
+
 unit_multiplier = {
-    "kb": 1024,
-    "mb": 1024 ** 2,
-    "gb": 1024 ** 3,
-    "tb": 1024 ** 4,
-    "pb": 1024 ** 5,
-    "eb": 1024 ** 6,
-    "zb": 1024 ** 7,
-    "yb": 1024 ** 8
+    "kb": 1024, "mb": 1024 ** 2, "gb": 1024 ** 3, "tb": 1024 ** 4,
+    "pb": 1024 ** 5, "eb": 1024 ** 6, "zb": 1024 ** 7, "yb": 1024 ** 8,
 }
 
 def process_mem_anots(node):
@@ -562,6 +564,11 @@ def Evaluate_expression(node, env: ScopeEnvironment):
       return node['value']
     elif node_type == 'identifier':
       return env.curr_scope.lookup(node['name'])
+    elif node_type == 'unary':
+        val = Evaluate_expression(node['operand'], env)
+        if node['op'] == '-' and is_number(val):
+            return -val
+        raise InterpreterError(f"Unknown unary operator '{node['op']}'.")
     elif node_type == 'binary':
         left = Evaluate_expression(node['left'], env)
         right = Evaluate_expression(node['right'], env)
@@ -615,9 +622,113 @@ def Evaluate_expression(node, env: ScopeEnvironment):
     else:
         raise InterpreterError(f"Unknown expression type '{node_type}'.")
     
-# RUN THE STUFF
-global_scope = Scope(parent=None)
-environ = ScopeEnvironment(global_scope)
+# Control Flow & Statement Dispatcher
+
+# I/O helper
+#Formating a value for print(...)
+def format_value(value):
+    if isinstance(value, bool):   return 'true' if value else 'false'
+    if isinstance(value, int):    return str(value)
+    if isinstance(value, float):  return str(value)
+    if isinstance(value, str):    return value
+    if value is None:             return 'null'
+    return str(value)
+
+# Central Dispatcher
+# Look at node['type'] and routes to the correct handler
+def execute_statement(node, env):
+    if node is None:
+        return
+    stmt_type = node.get('type')
+
+    if   stmt_type == 'assignment':           execute_assignment(node, env)
+    elif stmt_type == 'update':               execute_update(node, env)
+    elif stmt_type == 'if':                   execute_if(node, env)
+    elif stmt_type == 'while':                execute_while(node, env)
+    elif stmt_type == 'for':                  execute_for(node, env)
+    elif stmt_type == 'block':                execute_block(node, env)
+    elif stmt_type == 'print':                execute_print(node, env)
+    elif stmt_type == 'expression_statement': execute_expression_statement(node, env)
+    # [Issue Step 4] — 'return' statements handled by the function-runtime ticket.
+    else:
+        raise InterpreterError(f"Unknown statement type '{stmt_type}'.")
+
+# let x = expr;  -> declare in current scope 
+def execute_assignment(node, env):
+    value = Evaluate_expression(node['value'], env)
+    env.curr_scope.define(node['target'], value)
+
+# x = expr;  -> assign to nearest existing binding 
+def execute_update(node, env):
+    value = Evaluate_expression(node['value'], env)
+    env.curr_scope.assign(node['target'], value)
+
+#  if (cond) { ... } else { ... } 
+def execute_if(node, env):
+    cond = Evaluate_expression(node['condition'], env)
+    if not isinstance(cond, bool):
+        raise InterpreterError(
+            f"if condition must be boolean, got {type(cond).__name__}")
+    if cond:
+        execute_block(node['then'], env)
+    elif node.get('else') is not None:
+        execute_block(node['else'], env)
+
+#  while (cond) { ... } 
+def execute_while(node, env):
+    while True:
+        cond = Evaluate_expression(node['condition'], env)
+        if not isinstance(cond, bool):
+            raise InterpreterError(
+                f"while condition must be boolean, got {type(cond).__name__}")
+        if not cond:
+            break
+        execute_block(node['body'], env)
+
+#  for (init; cond; update) { ... } 
+# The whole for-statement runs in its OWN scope so the loop
+# variable declared by `init` is visible to `cond` and `update`.
+def execute_for(node, env):
+    env.push_scope()
+    try:
+        if node.get('init') is not None:
+            execute_statement(node['init'], env)
+
+        while True:
+            cond = Evaluate_expression(node['condition'], env)
+            if not isinstance(cond, bool):
+                raise InterpreterError(
+                    f"for condition must be boolean, got {type(cond).__name__}")
+            if not cond:
+                break
+            execute_block(node['body'], env)
+            execute_statement(node['update'], env)
+    finally:
+        env.pop_scope()
+
+#  { statement_list }  -> fresh child scope 
+def execute_block(node, env):
+    env.push_scope()
+    try:
+        for stmt in node['statements']:
+            execute_statement(stmt, env)
+    finally:
+        env.pop_scope()
+
+#  print(...)  -> one line to stdout
+def execute_print(node, env):
+    value = Evaluate_expression(node['value'], env)
+    print(format_value(value))
+
+# expression statements
+# In this grammar, `print(...)` parses as an expression node inside
+# an expression_statement, so route it to the print handler here.
+def execute_expression_statement(node, env):
+    expr = node['expression']
+    if isinstance(expr, dict) and expr.get('type') == 'print':
+        execute_print(expr, env)
+    else:
+        Evaluate_expression(expr, env)
 
 def parse(source):
   lexer.lineno = 1
